@@ -19,7 +19,7 @@ public class sleepy{
 			k--;
 		}
 		out.println(k);
-		if(k>1) {
+		if(k>=1) {
 			ft.update(a[k], 1);
 		}
 		/*for(int i=0;i<=n;i++) {
