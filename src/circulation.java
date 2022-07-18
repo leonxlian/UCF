@@ -41,6 +41,8 @@ public class circulation{
 	static long ans;
 	static int size[];
 	static SegTree st;
+	static int enter[];
+	static int time;
 	public static void main(String[] args)throws IOException{
 		Scanner sc=new Scanner();
 		out=new PrintWriter(System.out);
@@ -63,6 +65,8 @@ public class circulation{
 				al.get(y).add(x);
 			}
 			size=new int[n];
+			enter=new int[n];
+			time=0;
 			dfs(0, -1);
 			/*for(int i=0;i<n;i++) {
 				out.print(a[i]+" ");
@@ -71,12 +75,12 @@ public class circulation{
 			for(int i=0;i<n;i++) {
 				out.print(size[i]+" ");
 			}*/
-			out.println();
+			//out.println();
 			st=new SegTree(n);
 			st.build(a);
 			//st.increment(1, 0, 7, 0, 5, 3);
 			ans=0;
-			print();
+			//print();
 			dfs1(0, -1);
 			/*ans+=st.max(1, 0, st.size-1, 0, st.size-1);
 			//out.println(ans);
@@ -106,25 +110,27 @@ public class circulation{
 	static void dfs1(int cur, int par) {
 		ans+=(long)(st.max(1, 0, st.size-1, 0, st.size-1));
 		//print();
+		//out.println(cur);
 		for(int next:al.get(cur)) {
 			if(next!=par) {
-				st.increment(1, 0, st.size-1, 0, next-1, weight.get(cur+" "+next));
-				print();
-				st.increment(1, 0, st.size-1, next, next+size[next]-1, -weight.get(cur+" "+next));
-				print();
-				st.increment(1, 0, st.size-1, next+size[next], st.size-1, weight.get(cur+" "+next));
-				print();
+				st.increment(1, 0, st.size-1, 0, enter[next]-1, weight.get(cur+" "+next));
+//				print();
+				st.increment(1, 0, st.size-1, enter[next], enter[next]+size[next]-1, -weight.get(cur+" "+next));
+//				print();
+				st.increment(1, 0, st.size-1, enter[next]+size[next], st.size-1, weight.get(cur+" "+next));
+//				print();
 				dfs1(next, cur);
-				st.increment(1, 0, st.size-1, 0, next-1, -weight.get(cur+" "+next));
-				print();
-				st.increment(1, 0, st.size-1, next, next+size[next]-1, weight.get(cur+" "+next));
-				print();
-				st.increment(1, 0, st.size-1, next+size[next], st.size-1,-weight.get(cur+" "+next));
-				print();
+				st.increment(1, 0, st.size-1, 0, enter[next]-1, -weight.get(cur+" "+next));
+//				print();
+				st.increment(1, 0, st.size-1, enter[next], enter[next]+size[next]-1, weight.get(cur+" "+next));
+//				print();
+				st.increment(1, 0, st.size-1, enter[next]+size[next], st.size-1,-weight.get(cur+" "+next));
+//				print();
 			}
 		}
 	}
 	static void dfs(int cur, int par) {
+		enter[cur]=time++;
 		if(par!=-1) {
 			a[cur]=a[par]+weight.get(cur+" "+par);
 		}
@@ -263,4 +269,3 @@ public class circulation{
 	    }
 	}
 }
-
