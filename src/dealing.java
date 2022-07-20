@@ -5,58 +5,69 @@ import java.io.*;
 import java.util.*;
 public class dealing {
 	public static PrintWriter out;
+	static ArrayList<ArrayList<Integer>>connections;
 	public static void main(String[] args)throws IOException {
 		BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st=new StringTokenizer(br.readLine());
 		out=new PrintWriter(System.out);
 		int t=Integer.parseInt(st.nextToken());
-		/*int count=0;
-		for(int i=640000;i>=639920;i--) {
-			for(int j=1;j<=50;j++) {
-				out.println(i+" "+(j));
-				count++;
-			}
-		}
-		out.println(count);*/
 		while(t-->0) {
 			st=new StringTokenizer(br.readLine());
 			int n=Integer.parseInt(st.nextToken());
 			int k=Integer.parseInt(st.nextToken());
-			if(k>=n) {
-				out.println(2);
-				continue;
-			}
-			int b[]=new int[n];
-			int index=1;
+			connections=new ArrayList<>();
+			ArrayList<Integer>perm=new ArrayList<>();
 			for(int i=0;i<k;i++) {
-				int cur=i;
-				while(cur+k<n) {
-					cur+=k;
-				}
-				while(cur>=0) {
-					b[cur]=index;
-					cur-=k;
-					index++;
-				}
+				connections.add(new ArrayList<Integer>());
 			}
-			/*for(int i:a) {
-				out.print(i+" ");
+			for(int i=0;i<n;i++) {
+				connections.get(i%k).add(i);
 			}
-			out.println();
-			for(int i:b) {
-				out.print(i+" ");
+			/*for(int i=0;i<n;i++) {
+				for(int node:connections.get(i)) {
+					out.println(i+" "+node);
+				}
 			}*/
-			int moves=1;
-			int pos=0;
-			pos=b[pos]-1;
-			//System.out.println(n+" "+k);
-			while(pos!=0) {
-				pos=b[pos]-1;
-				moves++;
+			for(int i=0;i<connections.size();i++){
+				Collections.reverse(connections.get(i));
+				for(int j:connections.get(i)) {
+					perm.add(j);
+				}
 			}
-			out.println(moves);
+			/*for(int i:perm) {
+				out.print(i+" ");
+			}
+			out.println();*/
+			boolean v[]=new boolean[n];
+			long ans=1;
+			for(int i=0;i<n;i++) {
+				if(v[i]) {
+					continue;
+				}
+				int cur=i;
+				long cycle=0;
+				while(!v[cur]) {
+					v[cur]=true;
+					cur=perm.get(cur);
+					cycle++;
+				}
+				ans=ans/gcd(ans, cycle)*cycle;
+			}
+			out.println(ans);
 		}
 		out.close();
 	}
-}
+	public static long lcm(long a, long b) {
+		return (long)(a*b/gcd(a, b));
+	}
+	public static long gcd(long a, long b) {
+		while (b != 0) {
+			a %= b;
+			long temp = a;
+			a = b;
+			b = temp;
+        }
+        return a;
+	}
 
+}
