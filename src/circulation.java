@@ -25,24 +25,19 @@
 1 5 7
 1 6 20
 1 7 10
-1 8 10
-
-
-
-//ans=229
-*/
+1 8 10*/
 import java.io.*;
 import java.util.*;
-public class circulation{
+public class circulation {
 	public static PrintWriter out;
 	static ArrayList<ArrayList<Integer>>al;
-	static HashMap<String,Integer> weight;
-	static int a[];
-	static long ans;
-	static int size[];
-	static SegTree st;
+	static int time=0;
 	static int enter[];
-	static int time;
+	static long sum[];
+	static int size[];
+	static long ans;
+	static SegTree st;
+	static HashMap<String, Integer>hm;
 	public static void main(String[] args)throws IOException{
 		Scanner sc=new Scanner();
 		out=new PrintWriter(System.out);
@@ -50,110 +45,61 @@ public class circulation{
 		while(t-->0) {
 			int n=sc.nextInt();
 			al=new ArrayList<>();
+			hm=new HashMap<>();
 			for(int i=0;i<n;i++) {
-				al.add(new ArrayList<Integer>());
+				al.add(new ArrayList<>());
 			}
-			a=new int[n];
-			weight=new HashMap<>();
+			ans=0;
+			enter=new int[n];
+			sum=new long[n];
+			size=new int[n];
+			time=0;
 			for(int i=0;i<n-1;i++) {
 				int x=sc.nextInt()-1;
 				int y=sc.nextInt()-1;
-				int len=sc.nextInt();
-				weight.put(x+" "+y, len);
-				weight.put(y+" "+x, len);
+				int weight=sc.nextInt();
 				al.get(x).add(y);
 				al.get(y).add(x);
+				hm.put(x+" "+y, weight);
+				hm.put(y+" "+x, weight);
 			}
-			size=new int[n];
-			enter=new int[n];
-			time=0;
 			dfs(0, -1);
-			/*for(int i=0;i<n;i++) {
-				out.print(a[i]+" ");
-			}
-			out.println();
-			for(int i=0;i<n;i++) {
-				out.print(size[i]+" ");
-			}*/
-			//out.println();
 			st=new SegTree(n);
-			st.build(a);
-			//st.increment(1, 0, 7, 0, 5, 3);
-			ans=0;
-			//print();
+			long b[]=new long[n];
+			for(int i=0;i<n;i++) {
+				b[enter[i]]=sum[i];
+			}
+			st.build(b);
 			dfs1(0, -1);
-			/*ans+=st.max(1, 0, st.size-1, 0, st.size-1);
-			//out.println(ans);
-			//print();
-			int cur=0;
-			for(int next:al.get(cur)) {
-				st.increment(1, 0, st.size-1, next, next+size[next], -weight.get(cur+" "+next));
-				st.increment(1, 0, st.size-1, 0, next-1, +weight.get(cur+" "+next));
-				st.increment(1, 0, st.size-1, next+size[next]+1, st.size-1,+weight.get(cur+" "+next));
-				dfs1(next, cur);
-				st.increment(1, 0, st.size-1, next, next+size[next], +weight.get(cur+" "+next));
-				st.increment(1, 0, st.size-1, 0, next-1, -weight.get(cur+" "+next));
-				st.increment(1, 0, st.size-1, next+size[next]+1, st.size-1,-weight.get(cur+" "+next));
-			}*/
-			//print();
-			/*
-			 0 2 5 3 4 
-			 	   5
-			   5 	  4 
-			 2  5   4   0 
-			0 2 5 3 4 0 0 0   
-			 */
 			out.println(ans);
 		}
 		out.close();
 	}
 	static void dfs1(int cur, int par) {
-		ans+=(long)(st.max(1, 0, st.size-1, 0, st.size-1));
-		//print();
-		//out.println(cur);
+		ans+=st.max(1, 0, st.size-1, 0, st.size-1);
 		for(int next:al.get(cur)) {
 			if(next!=par) {
-				st.increment(1, 0, st.size-1, 0, enter[next]-1, weight.get(cur+" "+next));
-//				print();
-				st.increment(1, 0, st.size-1, enter[next], enter[next]+size[next]-1, -weight.get(cur+" "+next));
-//				print();
-				st.increment(1, 0, st.size-1, enter[next]+size[next], st.size-1, weight.get(cur+" "+next));
-//				print();
+				st.increment(1, 0, st.size-1, 0, enter[next]-1, hm.get(cur+" "+next));
+				st.increment(1, 0, st.size-1, enter[next], enter[next]+size[next]-1, -hm.get(cur+" "+next));
+				st.increment(1, 0, st.size-1, enter[next]+size[next], st.size-1, hm.get(cur+" "+next));
 				dfs1(next, cur);
-				st.increment(1, 0, st.size-1, 0, enter[next]-1, -weight.get(cur+" "+next));
-//				print();
-				st.increment(1, 0, st.size-1, enter[next], enter[next]+size[next]-1, weight.get(cur+" "+next));
-//				print();
-				st.increment(1, 0, st.size-1, enter[next]+size[next], st.size-1,-weight.get(cur+" "+next));
-//				print();
+				st.increment(1, 0, st.size-1, 0, enter[next]-1, -hm.get(cur+" "+next));
+				st.increment(1, 0, st.size-1, enter[next], enter[next]+size[next]-1, hm.get(cur+" "+next));
+				st.increment(1, 0, st.size-1, enter[next]+size[next], st.size-1, -hm.get(cur+" "+next));
 			}
 		}
 	}
 	static void dfs(int cur, int par) {
 		enter[cur]=time++;
-		if(par!=-1) {
-			a[cur]=a[par]+weight.get(cur+" "+par);
-		}
 		size[cur]=1;
+		if(par!=-1) {
+			sum[cur]=sum[par]+hm.get(par+" "+cur);
+		}
 		for(int next:al.get(cur)) {
 			if(next!=par) {
 				dfs(next, cur);
 				size[cur]+=size[next];
 			}
-		}
-	}
-	static void print() {
-		for(int i=1;i<=4;i++) {
-			for(int j=1<<(i-1);j<1<<i;j++) {
-				out.print(st.tree[j]+" ");
-			}
-			out.println();
-		}
-		for(int i=1;i<=4;i++) {
-			for(int j=1<<(i-1);j<1<<i;j++) {
-				out.print(st.lazy[j]+" ");
-			}
-			out.println();
 		}
 	}
 	static class SegTree{
@@ -168,7 +114,7 @@ public class circulation{
 			lazy=new long[2*size];
 			tree=new long[2*size];
 		}
-		public void build(int a[]) {
+		public void build(long a[]) {
 			for(int i=0;i<a.length;i++) {
 				tree[size+i]=a[i];
 			}
