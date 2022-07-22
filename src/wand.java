@@ -23,6 +23,18 @@
 1 1 YNY
 2 5
 2 6
+
+1
+4 6 5
+0
+0
+2
+1 2 NNYYN
+1 0 YNYNY
+2 0
+2 1
+2 2
+2 3
  */
 import java.io.*;
 import java.util.*;
@@ -34,7 +46,6 @@ public class wand {
 	static ArrayList<ArrayList<Integer>>al;
 	static SegTree st;
 	static int k;
-	static String ll;
 	public static void main(String[] args)throws IOException{
 		Scanner sc=new Scanner();
 		out=new PrintWriter(System.out);
@@ -49,40 +60,41 @@ public class wand {
 				al.add(new ArrayList<Integer>());
 			}
 			enter=new int[n];
-			for(int i=1;i<n;i++) {
+			for(int i=0;i<n-1;i++) {
 				int x=sc.nextInt();
-				al.get(i).add(x);
-				al.get(x).add(i);
+				//al.get(i).add(x);
+				al.get(x).add(i+1);
 			}
+			time=0;
 			dfs(0, -1);
-			ll="";
-			for(int i=0;i<k;i++) {
-				ll+="0";
-			}
-			String a[]=new String[n];
-			for(int i=0;i<n;i++) {
-				a[i]=ll;
-			}
+			//int a[]=new int[n];
 			st=new SegTree(n);
-			st.build(a);
+			//st.build(a);
 			while(q-->0) {
 				int x=sc.nextInt();
 				if(x==1) {
 					int par=sc.nextInt();
 					String s=sc.next();
-					String temp="";
+					int mask=0;
 					for(int i=0;i<k;i++) {
 						if(s.charAt(i)=='Y') {
-							temp+="1";
-						}else {
-							temp+="0";
+							mask+=(1<<i);
 						}
 					}
-					st.increment(1, 0, st.size-1, enter[par], enter[par]+size[par]-1, temp);
+					//long cur1=Integer.parseInt(temp);
+					//out.println(cur+" "+cur1);
+					st.increment(1, 0, st.size-1, enter[par], enter[par]+size[par]-1, mask);
 				}else {
 					int par=sc.nextInt();
-					st.down(1, 0, st.size-1, enter[par], enter[par]);
-					out.println(st.tree[enter[par]]);
+					long mask=st.xor(1, 0, st.size-1, enter[par], enter[par]);
+					for(int i=0;i<k;i++) {
+						if(((mask>>i)&1)==1) {
+							out.print('U');
+						}else {
+							out.print('D');
+						}
+					}
+					out.println();
 				}
 			}
 		}
@@ -100,33 +112,36 @@ public class wand {
 	}
 	static class SegTree{
 		int size;
-		String tree[];
-		String[] lazy;
+		long tree[];
+		long[] lazy;
 		public SegTree(int n) {
 			size=1;
 			while(size<n) {
 				size*=2;
 			}
-			lazy=new String[2*size];
-			tree=new String[2*size];
+			lazy=new long[2*size];
+			tree=new long[2*size];
 		}
-		public void build(String a[]) {
-			for(int i=0;i<2*size;i++) {
-				tree[i]=ll;
-				lazy[i]=ll;
+		public void build(int a[]) {
+			for(int i=0;i<a.length;i++) {
+				tree[size+i]=0;
+			}
+			for(int i=size-1;i>=1;i--) {
+				tree[i]=tree[2*i]^tree[2*i+1];
 			}
 		}
-		public void down(int node, int node_low, int node_high, int query_low, int query_high) {
+		public long xor(int node, int node_low, int node_high, int query_low, int query_high) {
 			if(query_low<=node_low&&node_high<=query_high) {
-				return;
+				return tree[node];
 			}
 			if(query_high<node_low||query_low>node_high) {
-				return;
+				return 0;
 			}
 			push(node, node_low, node_high);
+			tree[node]=tree[2*node]^tree[2*node+1];
 			int last_in_left=(node_low+node_high)/2;
-			down(2*node, node_low, last_in_left, query_low, query_high);
-			down(2*node+1, last_in_left+1, node_high, query_low, query_high);
+			return xor(2*node, node_low, last_in_left, query_low, query_high)^
+					xor(2*node+1, last_in_left+1, node_high, query_low, query_high);
 		}
 		//change
 		/*public void setRecur(int node, int node_low, int node_high, int query_low, int query_high, int v) {
@@ -143,25 +158,17 @@ public class wand {
 			tree[node]=tree[2*node]+tree[2*node+1];
 		}*/
 		public void push(int node, int node_low, int node_high) {
-			if(!lazy[node].equals(ll)) {
+			if(lazy[node]!=0) {
 				int last_in_left=(node_low+node_high)/2;
 				increment(2*node, node_low, last_in_left, node_low, node_high, lazy[node]);
 				increment(2*node+1, last_in_left+1, node_high, node_low, node_high, lazy[node]);
 			}
-			lazy[node]=ll;
+			lazy[node]=0;
 		}
-		public void increment(int node, int node_low, int node_high, int query_low, int query_high, String amount) {
+		public void increment(int node, int node_low, int node_high, int query_low, int query_high, long amount) {
 			if(query_low<=node_low&&node_high<=query_high) {
-				String temp="";
-				for(int i=0;i<k;i++) {
-					temp+=(tree[node].charAt(i)-'0')^(amount.charAt(i)-'0');
-				}
-				tree[node]=temp;
-				temp="";
-				for(int i=0;i<k;i++) {
-					temp+=(lazy[node].charAt(i)-'0')^(amount.charAt(i)-'0');
-				}
-				lazy[node]=temp;
+				tree[node]^=amount;
+				lazy[node]^=amount;
 				return;
 			}
 			if(query_low>node_high||node_low>query_high) {
@@ -171,6 +178,7 @@ public class wand {
 			int last_in_left=(node_low+node_high)/2;
 			increment(2*node, node_low, last_in_left, query_low, query_high, amount);
 			increment(2*node+1, last_in_left+1, node_high, query_low, query_high, amount);
+			tree[node]=tree[2*node]^tree[2*node+1];
 		}
 	}
 	public static class Scanner {
